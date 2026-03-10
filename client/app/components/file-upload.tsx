@@ -21,15 +21,23 @@ const FileUploadComponent: React.FC = () => {
 
           try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            await fetch(`${apiUrl}/upload/pdf`, {
+            console.log(`Attempting upload to: ${apiUrl}/upload/pdf`);
+            
+            const response = await fetch(`${apiUrl}/upload/pdf`, {
               method: 'POST',
               body: formData,
             });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Upload failed with status ${response.status}: ${errorText}`);
+            }
+
             setUploadStatus('success');
-            console.log('File uploaded');
+            console.log('File uploaded successfully');
           } catch (err) {
             setUploadStatus('error');
-            console.error('Upload failed:', err);
+            console.error('Upload error details:', err);
           } finally {
             setIsUploading(false);
           }

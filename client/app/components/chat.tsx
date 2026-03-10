@@ -39,7 +39,15 @@ const ChatComponent: React.FC = () => {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      console.log(`Sending message to: ${apiUrl}/chat?message=${userMsg}`);
+      
       const res = await fetch(`${apiUrl}/chat?message=${userMsg}`);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Chat request failed with status ${res.status}: ${errorText}`);
+      }
+
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
@@ -50,7 +58,14 @@ const ChatComponent: React.FC = () => {
         },
       ]);
     } catch (err) {
-      console.error('Chat failed:', err);
+      console.error('Chat error details:', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please check your connection and try again.',
+        },
+      ]);
     }
   };
 
