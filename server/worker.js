@@ -61,10 +61,22 @@ const worker = new Worker(
   },
   {
     concurrency: 100,
-    connection: process.env.REDIS_URL || {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || '6379',
-    },
+    connection: (() => {
+      if (process.env.REDIS_URL) {
+        const url = new URL(process.env.REDIS_URL);
+        return {
+          host: url.hostname,
+          port: Number(url.port),
+          password: url.password,
+          username: url.username || 'default',
+          tls: url.protocol === 'rediss:' ? {} : undefined,
+        };
+      }
+      return {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      };
+    })(),
   }
 );
 

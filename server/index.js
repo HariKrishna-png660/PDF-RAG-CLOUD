@@ -11,11 +11,25 @@ const geminiModel = new ChatGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });
 
-const queue = new Queue('file-upload-queue', {
-  connection: process.env.REDIS_URL || {
+function getRedisConnection() {
+  if (process.env.REDIS_URL) {
+    const url = new URL(process.env.REDIS_URL);
+    return {
+      host: url.hostname,
+      port: Number(url.port),
+      password: url.password,
+      username: url.username || 'default',
+      tls: url.protocol === 'rediss:' ? {} : undefined,
+    };
+  }
+  return {
     host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || '6379',
-  },
+    port: Number(process.env.REDIS_PORT) || 6379,
+  };
+}
+
+const queue = new Queue('file-upload-queue', {
+  connection: getRedisConnection(),
 });
 
 const storage = multer.diskStorage({
